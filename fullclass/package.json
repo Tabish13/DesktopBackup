@@ -1,0 +1,17 @@
+{
+  "name": "fullclass",
+  "version": "1.0.0",
+  "description": "\"class management with attendance performance\"",
+  "main": "./bin/src/enquiryDisplay.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "welegans",
+  "license": "ISC",
+  "dependencies": {
+    "jsonfile": "^3.0.0",
+    "material-design-lite": "^1.3.0",
+    "moment": "^2.18.1",
+    "nedb": "^1.8.0"
+  }
+}

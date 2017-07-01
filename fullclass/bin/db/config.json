@@ -1,0 +1,22 @@
+{
+	"standards":[
+		"IX",
+		"SSC",
+		"FY-COM",
+		"FY-SCI",
+		"HSC-COM",
+		"HSC-SCI",
+		"FY-BCOM",
+		"BSC"
+	],
+	"default":{
+		"academicyear":"2017-2018",
+		"standard":"SSC"
+	},
+	"academicyears":[
+		"2017-2018",
+		"2018-2019",
+		"2019-2020"
+	]
+
+}

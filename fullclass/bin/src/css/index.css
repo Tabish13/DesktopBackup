@@ -1,0 +1,70 @@
+body{
+  background-color: #1A237E;
+}
+.demo-card-image.mdl-card.m1 {
+  width: 256px;
+  height: 256px;
+  background: url('../img/reg.png') center / cover;
+}
+.demo-card-image.mdl-card.m2 {
+  width: 256px;
+  height: 256px;
+  background: url('../img/dis.png') center / cover;
+}
+.demo-card-image.mdl-card.m3 {
+  width: 256px;
+  height: 256px;
+  background: url('../img/back.png') center / cover;
+}
+.demo-card-image > .mdl-card__actions {
+  height: 52px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.2);
+}
+.demo-card-image__filename {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+}
+.cards{
+  display: table;
+  height: 70vh;
+}
+.incard{
+  display: table-cell;
+vertical-align: middle;
+text-align: center;
+}
+.col-xs-4{
+  padding: 2em;
+}
+h4{
+  font-size: 2em;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-align: center;
+color: #fff;
+margin-left: 5%;
+}
+.demo-card-image__filename{
+  color: black;
+  font-size: 1.5em;
+  font-weight: bolder;
+}
+.glyphicon{
+  color: white;
+  font-size: 2em;
+  vertical-align: middle;
+}
+.seting{
+width: 50%;
+
+}
+.seting label{
+  width: 10em;
+  padding: 0.6em 0;
+}
+.seting select{
+  height: 1.8em;
+  width: 10em;
+}

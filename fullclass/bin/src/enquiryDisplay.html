@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title></title>
+    <script src="./js/jquery.min.js"></script>
+    <link rel="stylesheet" href="./bootstrap/css/bootstrap.min.css">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="./bootstrap/css/bootstrap-theme.min.css">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="./bootstrap/js/bootstrap.min.js"></script>
+    <!-- Data Tables -->
+    <!-- <script src="./datatable/js/jquery-1.12.4.js"></script> -->
+    <script src="./datatable/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="./datatable/css/table.css">
+    <style type="text/css">
+    .mousePointer {
+        cursor: pointer;
+    }
+    
+    #editoverlay {
+        position: fixed;
+        /* Sit on top of the page content */
+        display: none;
+        /* Hidden by default */
+        width: 100%;
+        /* Full width (cover the whole page) */
+        height: 100%;
+        /* Full height (cover the whole page) */
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        /* Black background with opacity */
+        z-index: 2;
+        /* Specify a stack order in case you're using a different order for other elements */
+        /* Add a pointer on hover */
+    }
+    
+    .overlayContent {
+        /*Dont give font white or else chanfe the white bg all to data be visible*/
+    }
+    </style>
+</head>
+
+<body>
+    <a href="enquiry.html">Enquiry Register</a>
+    <select id="tacademicyear"></select>
+    <script src="./js/dynamicHTML.js"></script>
+    <script type="text/javascript">
+    $(document).ready(function() {
+        var table, thisInstance;
+        var moment = require('moment');
+        var util = require('../db/util.js');
+        var con = require('../db/db.js');
+        createOptions("#tacademicyear", util.totalAcademicYears());
+        createOptions("#standard", util.standardsArrays());
+        createOptions("#academicyear", util.totalAcademicYears());
+
+        var enquiryDB = defaultSetup();
+        createTable(enquiryDB);
+
+        //on change of academic years have to rebuilt datatable using createTable
+        $('#tacademicyear').change(function() {
+            enquiryDB = con.enquiryDB($('#tacademicyear').val());
+            createTable(enquiryDB);
+        });
+
+        $('#enquiryTable').on('click', 'div', function() {
+            thisInstance = $(this); // to change/update the datatable require this of the row to update
+            var buttonName = $(this).attr("value");
+            var data = table.row($(this).parents('tr')).data();
+            if (buttonName == "edit") {
+                //console.log(data);
+                setEditData(data);
+                editOn();
+                //editOff();
+            } else if (buttonName == "delete") {
+                $('#deleteenqno').html(data.enq_no);
+                $('#deletename').html(data.firstname);
+                $('#delete').modal();
+                //alert("clicked delete");
+            }
+        });
+
+        $('#editsave').click(function() {
+            var enquiryData = getEditData();
+            enquiryDB.update({
+                    enq_no: enquiryData.enq_no
+                },
+                enquiryData, {},
+                function(err, numReplaced) {
+                    if (!err) {
+                        table.row(thisInstance.parents('tr')).data(enquiryData).draw(); //update the datatable data
+                        alert("Successfully Updated");
+                        editOff();
+                    };
+                });
+        });
+
+        $('#editcancel').click(function() {
+            editOff();
+        });
+        $('#deleteyes').click(function(){
+             var enqno = $('#deleteenqno').html();
+                enquiryDB.remove({
+                    enq_no: enqno
+                }, {}, function(err, numRemoved) {
+                    if (!err) {
+                        table.row(thisInstance.parents('tr')).remove().draw();
+                        thisInstance = null;
+                        alert('Deleted Succesfully.');
+                        //location.reload();
+                    } else {
+                        alert('Oops some error occured while deleting.')
+                    }
+                });
+        });
+        /*Needed here using util and con from the document.ready scope.*/
+
+        function setEditData(enquiryData) {
+            $('#enq_no').val(enquiryData.enq_no);
+            $('#date').val(enquiryData.date);
+            $('#firstname').val(enquiryData.firstname);
+            $('#lastname').val(enquiryData.lastname);
+            $('#fathername').val(enquiryData.fathername);
+            $('#mothername').val(enquiryData.mothername);
+            $('#dob').val(enquiryData.dob);
+            $('#standard').val(enquiryData.standard);
+            $('#academicyear').val(enquiryData.academicyear);
+            $('#institutename').val(enquiryData.institutename);
+            $('#percentage').val(enquiryData.percentage);
+            $('#contactno').val(enquiryData.contactno);
+            $('#altcontactno').val(enquiryData.altcontactno);
+            $('#atendentname').val(enquiryData.atendentname);
+            $('#followup').val(enquiryData.followup);
+            $('#status').val(enquiryData.status);
+            $('#note').val(enquiryData.note);
+        }
+
+        function getEditData() {
+            var enquiryData = {};
+            enquiryData.enq_no = $('#enq_no').val();
+            enquiryData.date = $('#date').val();
+            enquiryData.firstname = $('#firstname').val();
+            enquiryData.lastname = $('#lastname').val();
+            enquiryData.fathername = $('#fathername').val();
+            enquiryData.mothername = $('#mothername').val();
+            enquiryData.dob = $('#dob').val();
+            enquiryData.standard = $('#standard').val();
+            enquiryData.academicyear = $('#academicyear').val();
+            enquiryData.institutename = $('#institutename').val();
+            enquiryData.percentage = $('#percentage').val();
+            enquiryData.contactno = $('#contactno').val();
+            enquiryData.altcontactno = $('#altcontactno').val();
+            enquiryData.atendentname = $('#atendentname').val();
+            enquiryData.followup = $('#followup').val();
+            enquiryData.status = $('#status').val();
+            enquiryData.note = $('#note').val();
+            return enquiryData;
+        }
+
+        function createTable(enqDB) {
+            enqDB.find({
+                enq_no: {
+                    $exists: true
+                }
+            }).exec(function(err, docs) {
+                if (!err) {
+                    //console.log(docs);
+                    table = enquiryDataTable(docs);
+                }
+            });
+
+        }; //end createTable
+        function defaultSetup() {
+            //var util = require('../db/util.js');
+            var defaultValues = util.defaultSettings();
+            var enquiryDB;
+            if (util.isAcademicYear(defaultValues.academicyear)) {
+                enquiryDB = con.enquiryDB(defaultValues.academicyear);
+                $('#academicyear').val(defaultValues.academicyear);
+                //$('#standard').val(defaultValues.standard);
+            } else {
+                enquiryDB = con.enquiryDB($('#academicyear').val());
+            }
+            return enquiryDB;
+        } //end of defaultSetup.
+
+        function editOn() {
+            document.getElementById("editoverlay").style.display = "block";
+        }
+
+        function editOff() {
+            document.getElementById("editoverlay").style.display = "none";
+        }
+    }); //end of document ready
+    </script>
+    <table id="enquiryTable"></table>
+    <div id="editoverlay">
+        <div class="overlayContent">
+            <h2>Enquiry</h2>
+            <label>Enquiry No</label>
+            <input type="text" name="enq_no" id="enq_no" readonly>
+            <label>Date</label>
+            <input type="text" name="date" id="date" readonly>
+            <label>First Name</label>
+            <input type="text" name="firstname" id="firstname">
+            <label>Last Name</label>
+            <input type="text" name="lastname" id="lastname">
+            <label>Father Name</label>
+            <input type="text" name="fathername" id="fathername">
+            <label>Mother Name</label>
+            <input type="text" name="mothername" id="mothername">
+            <label>DOB</label>
+            <input type="text" name="dob" id="dob">
+            <label>Standard</label>
+            <select id="standard"></select>
+            <label>Academic Year</label>
+            <input type="text" name="academicyear" id="academicyear" readonly>
+            <label>School/College Name</label>
+            <input type="text" name="institutename" id="institutename">
+            <label>Percentage %</label>
+            <input type="text" name="percentage" id="percentage">
+            <label>Contact No</label>
+            <input type="text" name="contactno" id="contactno">
+            <label>Alt Contact No</label>
+            <input type="text" name="altcontactno" id="altcontactno">
+            <label>Atendent Name</label>
+            <input type="text" name="atendentname" id="atendentname">
+            <label>Follow Up</label>
+            <input type="text" name="followup" id="followup">
+            <label>Status</label>
+            <select id="status">
+                <option value="pending">Pending</option>
+                <option value="cancel"> Cancel</option>
+                <option value="done">Done</option>
+            </select>
+            <label>Note</label>
+            <textarea rows="3" id="note"></textarea>
+            <input type="button" name="save" id="editsave" value="Save">
+            <input type="button" name="cancel" id="editcancel" value="Cancel">
+        </div>
+    </div>
+    <script src="./js/enquiryDatatable.js"></script>
+    <div class="container">
+        <div class="modal fade" id="delete" role="dialog">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Confirm Delete</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete <br>ENQ NO: <span id="deleteenqno"></span>
+                            <br> Name: <span id="deletename"></span>
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal" id="deleteyes">Yes</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal" id="deleteno">No</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title></title>
+    <script src="./js/jquery.min.js"></script>
+    <link rel="stylesheet" href="./bootstrap/css/bootstrap.min.css">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="./bootstrap/css/bootstrap-theme.min.css">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="./bootstrap/js/bootstrap.min.js"></script>
+    <!-- Data Tables -->
+    <!-- <script src="./datatable/js/jquery-1.12.4.js">
+        </script>
+        <script src="./datatable/js/jquery.dataTables.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="./datatable/css/table.css"> -->
+</head>
+
+<body>
+    <a href="enquiryDisplay.html">Enquiry Display</a>
+    <h2>Enquiry</h2>
+    <label>Enquiry No</label>
+    <input type="text" name="enq_no" id="enq_no">
+    <label>Date</label>
+    <input type="text" name="date" id="date">
+    <label>First Name</label>
+    <input type="text" name="firstname" id="firstname">
+    <label>Last Name</label>
+    <input type="text" name="lastname" id="lastname">
+    <label>Father Name</label>
+    <input type="text" name="fathername" id="fathername">
+    <label>Mother Name</label>
+    <input type="text" name="mothername" id="mothername">
+    <label>DOB</label>
+    <input type="text" name="dob" id="dob">
+    <label>Standard</label>
+    <select id="standard"></select>
+    <label>Academic Year</label>
+    <select id="academicyear"></select>
+    <label>School/College Name</label>
+    <input type="text" name="institutename" id="institutename">
+    <label>Percentage %</label>
+    <input type="text" name="percentage" id="percentage">
+    <label>Contact No</label>
+    <input type="text" name="contactno" id="contactno">
+    <label>Alt Contact No</label>
+    <input type="text" name="altcontactno" id="altcontactno">
+    <label>Atendent Name</label>
+    <input type="text" name="atendentname" id="atendentname">
+    <label>Follow Up</label>
+    <input type="text" name="followup" id="followup">
+    <label>Status</label>
+    <select id="status">
+        <option value="pending">Pending</option>
+        <option value="cancel"> Cancel</option>
+        <option value="done">Done</option>
+    </select>
+    <label>Note</label>
+    <textarea rows="3" id="note"></textarea>
+    <input type="button" name="save" id="save" value="Save">
+    <input type="button" name="cancel" id="cancel" value="Cancel">
+    
+    <script src="./js/dynamicHTML.js"></script>
+    <script type="text/javascript">
+    $(document).ready(function() {
+        var util = require('../db/util.js');
+        //get the db.js function exports
+        var con = require('../db/db.js');
+        var moment = require('moment');
+
+        //createOption is use to create select options takes param as id, array.
+        createOptions("#standard", util.standardsArrays());
+        createOptions("#academicyear", util.academicArrays());
+
+        $('#date').val(moment().format('DD-MM-YYYY'));
+        var enquiryDB = defaultSetup();
+
+        //change on academic year
+        $('#academicyear').change(function() {
+            enquiryDB = con.enquiryDB($('#academicyear').val());
+            setAutoId(enquiryDB);
+        }); //end if academicyear change
+
+
+        //on save click
+        $('#save').click(function() {
+            var enquiryData = {};
+            enquiryData.enq_no = $('#enq_no').val();
+            enquiryData.date = $('#date').val();
+            enquiryData.firstname = $('#firstname').val();
+            enquiryData.lastname = $('#lastname').val();
+            enquiryData.fathername = $('#fathername').val();
+            enquiryData.mothername = $('#mothername').val();
+            enquiryData.dob = $('#dob').val();
+            enquiryData.standard = $('#standard').val();
+            enquiryData.academicyear = $('#academicyear').val();
+            enquiryData.institutename = $('#institutename').val();
+            enquiryData.percentage = $('#percentage').val();
+            enquiryData.contactno = $('#contactno').val();
+            enquiryData.altcontactno = $('#altcontactno').val();
+            enquiryData.atendentname = $('#atendentname').val();
+            enquiryData.followup = $('#followup').val();
+            enquiryData.status = $('#status').val();
+            enquiryData.note = $('#note').val();
+
+            //console.log(JSON.stringify(enquiryData));
+            enquiryDB.insert(enquiryData, function(err, result) {
+                if (!err) {
+                    con.autoId(true, enquiryDB, function(err, result) {
+                        if (!err) {
+                            alert("SUCCESSFULLY CREATED ENQUIRY");
+                            location.reload();
+                        }
+                    });
+                }
+            });
+        });
+
+        //Needed here using util and con from the document.ready scope.
+        function defaultSetup() {
+            //var util = require('../db/util.js');
+            var defaultValues = util.defaultSettings();
+            var enquiryDB;
+            if (util.isAcademicYear(defaultValues.academicyear)) {
+                enquiryDB = con.enquiryDB(defaultValues.academicyear);
+                $('#academicyear').val(defaultValues.academicyear);
+                $('#standard').val(defaultValues.standard);
+            } else {
+                enquiryDB = con.enquiryDB($('#academicyear').val());
+            }
+            setAutoId(enquiryDB);
+            return enquiryDB;
+        } //end of defaultSetup.
+
+        function setAutoId(enqDB) {
+            con.autoId(false, enqDB, function(err, result) {
+                $('#enq_no').val(result);
+            });
+        } //end of setautoid
+    });
+    </script>
+</body>
+
+</html>

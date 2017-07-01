@@ -1,0 +1,41 @@
+body {
+  background: url("../img/book.jpg") no-repeat;
+  background-size: cover;
+
+}
+
+h1 {
+  text-align: center;
+  font-size: 2.5em;
+  /*text-transform: uppercase;*/
+}
+
+.box {
+
+  text-align: center;
+  background-color: #1A237E;
+  padding: 5em;
+  color: #f1f1f1;
+}
+
+.main {
+  display: table;
+  width: 50%;
+}
+
+.in {
+  height: 100vh;
+  display: table-cell;
+  vertical-align: middle;
+}
+.mdl-card{
+  width: auto;
+}
+input{
+  border: 0;
+  border-bottom: solid 1px black;
+  padding: 0.7em;
+}
+::selection {
+background: none;
+}
