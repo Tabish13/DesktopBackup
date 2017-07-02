@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title></title>
+    <script src="./js/jquery.min.js"></script>
+    <link rel="stylesheet" href="./bootstrap/css/bootstrap.min.css">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="./bootstrap/css/bootstrap-theme.min.css">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="./bootstrap/js/bootstrap.min.js"></script>
+    <!-- Data Tables -->
+    <!-- <script src="./datatable/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="./datatable/css/table.css"> -->
+</head>
+
+<body>
+<h3>STUDENT DETAILS</h3><br>
+    <label>Reg No</label>
+    <input type="text" name="reg_no" id="reg_no">
+    <label>Reg Date</label>
+    <input type="text" name="reg_date" id="reg_date">
+    <label>Enquiry Id</label>
+    <input type="text" name="enquiry_id" id="enquiry_id">
+    <label>Academic Year</label>
+    <input type="text" name="academic_year" id="academic_year">
+    <label>Standard</label>
+    <input type="text" name="standard" id="standard">
+    <label>Batch</label>
+    <input type="text" name="batch" id="batch">
+    <label>First Name</label>
+    <input type="text" name="first_name" id="first_name">
+    <label>Last Name</label>
+    <input type="text" name="last_name" id="last_name">
+    <label>Father Name</label>
+    <input type="text" name="father_name" id="father_name">
+    <label>Mother Name</label>
+    <input type="text" name="mother_name" id="mother_name">
+    <label>Student Contact No</label>
+    <input type="text" name="student_contact_no" id="student_contact_no">
+    <label>Guardian Contact No</label>
+    <input type="text" name="contact_no" id="contact_no">
+    <label>Alternate Contact No</label>
+    <input type="text" name="alt_contact_no" id="alt_contact_no">
+    <label>Address</label>
+    <input type="text" name="address" id="address">
+    <label>DOB</label>
+    <input type="text" name="dob" id="dob">
+    <label>Blood Group</label>
+    <input type="text" name="blood_group" id="blood_group">
+    <br> <h3>EDUCATIONAL DETAILS </h3>
+    <br>
+    <label>School College Name</label>
+    <input type="text" name="school_college_name" id="school_college_name">
+    <label>Obtained Marks</label>
+    <input type="text" name="obtained_marks" id="obtained_marks">
+    <label>Total Marks</label>
+    <input type="text" name="total_marks" id="total_marks">
+    <label>Percentage %</label>
+    <input type="text" name="percentage" id="percentage">
+    <br><h3> PAYMENT DETAILS</h3>
+    <br>
+    <label>Total Fees</label>
+    <input type="text" name="total_fees" id="total_fees">
+    <label>Number of Installment</label>
+    <select id="noinstallation">
+        <option>1</option>
+        <option>2</option>
+        <option>3</option>
+        <option>4</option>
+        <option>5</option>
+        <option>6</option>
+        <option>7</option>
+        <option>8</option>
+        <option>9</option>
+        <option>10</option>
+        <option>11</option>
+        <option>12</option>
+    </select>
+    <table id="paymentdetails" class="table table-bordered">
+        <thead>
+            <tr>
+                <td>Date</td>
+                <td>Amount</td>
+                <td>Status</td>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td><b>Total</b></td>
+                <td>
+                    <input type="text" name="total" id="total" readonly>
+                </td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+    <script type="text/javascript">
+    $(document).ready(function() {
+        createPayTable();
+        $('#noinstallation').change(function() {
+            createPayTable();
+        });
+    });
+    </script>
+    <script type="text/javascript">
+    function createPayTable() {
+        var tableLength = ($('#paymentdetails tbody tr').length);
+        var noInstallation = $('#noinstallation').val();
+        var rowad = noInstallation - tableLength;
+        if (rowad < 0) {
+            $("#paymentdetails tbody tr").slice(rowad).remove();
+        } else if (rowad > 0) {
+            var addRow = '<tr>' +
+                '<td >' +
+                '<input type="date" name="date" class="date">' +
+                '</td>' +
+                '<td >' +
+                '<input type="text" class="amount" >' +
+                '</td>' +
+                ' <td>' +
+                ' <select>' +
+                ' <option>pending</option>' +
+                '<option>paid</option>' +
+                ' </select>' +
+                '</td>' +
+                '</tr>';
+            for (var i = 0; i < rowad; i++) {
+                $("#paymentdetails tbody").append(addRow);
+            }
+
+        }
+    }
+    </script>
+</body>
+
+</html>

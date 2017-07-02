@@ -2,7 +2,7 @@
   "name": "fullclass",
   "version": "1.0.0",
   "description": "\"class management with attendance performance\"",
-  "main": "./bin/src/enquiryDisplay.html",
+  "main": "./bin/src/register.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

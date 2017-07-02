@@ -9,6 +9,7 @@
     "academic_year": "",
     "standard": "",
     "batch": "",
+    "image_url": "",
 
     "user_details": {
         "first_name": "tabish",
@@ -20,8 +21,7 @@
         "alt_contact_no": "",
         "address": "",
         "dob": "",
-        "blood_group": "",
-        "image_url": ""
+        "blood_group": ""
     },
 
     "educational_details": {
