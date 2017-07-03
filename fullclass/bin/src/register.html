@@ -12,10 +12,12 @@
     <!-- Data Tables -->
     <!-- <script src="./datatable/js/jquery.dataTables.min.js"></script>
     <link rel="stylesheet" type="text/css" href="./datatable/css/table.css"> -->
+    <script src="./js/dynamicHTML.js"></script>
 </head>
 
 <body>
-<h3>STUDENT DETAILS</h3><br>
+    <h3>STUDENT DETAILS</h3>
+    <br>
     <label>Reg No</label>
     <input type="text" name="reg_no" id="reg_no">
     <label>Reg Date</label>
@@ -23,9 +25,9 @@
     <label>Enquiry Id</label>
     <input type="text" name="enquiry_id" id="enquiry_id">
     <label>Academic Year</label>
-    <input type="text" name="academic_year" id="academic_year">
+    <select id="academic_year"></select>
     <label>Standard</label>
-    <input type="text" name="standard" id="standard">
+    <select id="standard"></select>
     <label>Batch</label>
     <input type="text" name="batch" id="batch">
     <label>First Name</label>
@@ -48,7 +50,8 @@
     <input type="text" name="dob" id="dob">
     <label>Blood Group</label>
     <input type="text" name="blood_group" id="blood_group">
-    <br> <h3>EDUCATIONAL DETAILS </h3>
+    <br>
+    <h3>EDUCATIONAL DETAILS </h3>
     <br>
     <label>School College Name</label>
     <input type="text" name="school_college_name" id="school_college_name">
@@ -58,7 +61,8 @@
     <input type="text" name="total_marks" id="total_marks">
     <label>Percentage %</label>
     <input type="text" name="percentage" id="percentage">
-    <br><h3> PAYMENT DETAILS</h3>
+    <br>
+    <h3> PAYMENT DETAILS</h3>
     <br>
     <label>Total Fees</label>
     <input type="text" name="total_fees" id="total_fees">
@@ -99,40 +103,182 @@
     </table>
     <script type="text/javascript">
     $(document).ready(function() {
-        createPayTable();
-        $('#noinstallation').change(function() {
-            createPayTable();
+        var numeral = require('numeral');
+        var util = require('../db/util.js');
+        //get the db.js function exports
+        var con = require('../db/db.js');
+        var moment = require('moment');
+        var studentDB;
+
+        createOptions('#academic_year', util.totalAcademicYears());
+        createOptions('#standard', util.standardsArrays());
+
+        createPayTable(); //for creating 1row table for the first time
+        studentDB = defaultSetting();
+        $('#reg_date').val(moment().format('DD-MM-YYYY'));
+        //console.log(studentDB);
+
+        $('#enquiry_id').change(function() {
+            setEnquiryData();
         });
-    });
-    </script>
-    <script type="text/javascript">
-    function createPayTable() {
-        var tableLength = ($('#paymentdetails tbody tr').length);
-        var noInstallation = $('#noinstallation').val();
-        var rowad = noInstallation - tableLength;
-        if (rowad < 0) {
-            $("#paymentdetails tbody tr").slice(rowad).remove();
-        } else if (rowad > 0) {
-            var addRow = '<tr>' +
-                '<td >' +
-                '<input type="date" name="date" class="date">' +
-                '</td>' +
-                '<td >' +
-                '<input type="text" class="amount" >' +
-                '</td>' +
-                ' <td>' +
-                ' <select>' +
-                ' <option>pending</option>' +
-                '<option>paid</option>' +
-                ' </select>' +
-                '</td>' +
-                '</tr>';
-            for (var i = 0; i < rowad; i++) {
-                $("#paymentdetails tbody").append(addRow);
+        $('#academic_year').change(function() {
+            studentDB = getDB();
+            setAutoId(studentDB);
+            setEnquiryData();
+        });
+        $('#standard').change(function() {
+            studentDB = getDB();
+            setAutoId(studentDB);
+            //setEnquiryData();
+        });
+
+        function defaultSetting() {
+            var defaultValues = util.defaultSettings();
+            var studentdb;
+            if (util.isAcademicYear(defaultValues.academicyear) && defaultValues.standard) {
+                studentdb = con.studentsDB(defaultValues.academicyear, defaultValues.standard);
+                $('#academic_year').val(defaultValues.academicyear);
+                $('#standard').val(defaultValues.standard);
+            } else {
+                studentdb = getDB();
+            }
+            setAutoId(studentdb);
+            return studentdb;
+        }
+
+        function getDB() {
+            var academicyear = $('#academic_year').val();
+            var standard = $('#standard').val();
+            var studentdb = con.studentsDB(academicyear, standard);
+            return studentdb;
+        }
+
+        function setAutoId(enqDB) {
+            con.autoId(false, enqDB, function(err, result) {
+                $('#reg_no').val(result);
+            });
+        }
+
+        function setEnquiryData() {
+            var enquiryIdValue = $('#enquiry_id').val();
+            if (!(enquiryIdValue.toLowerCase() == "na") && !(enquiryIdValue.toLowerCase() == "no")) {
+                var enquiryDB = con.enquiryDB($('#academic_year').val());
+                enquiryDB.find({
+                    enq_no: enquiryIdValue
+                }, function(err, results) {
+                    if (!err) {
+                        if (results.length > 0) {
+                            var enquiryData = results[0];
+                            //write the details frorm enquiry db.
+                            $('#first_name').val(enquiryData.firstname);
+                            $('#last_name').val(enquiryData.lastname);
+                            $('#father_name').val(enquiryData.fathername);
+                            $('#mother_name').val(enquiryData.mothername);
+                            $('#dob').val(enquiryData.dob);
+                            $('#standard').val(enquiryData.standard);
+                            $('#school_college_name').val(enquiryData.institutename);
+                            //$('#percentage').val(enquiryData.percentage);
+                            $('#student_contact_no').val(enquiryData.contactno);
+                            $('#alt_contact_no').val(enquiryData.altcontactno);
+                        } else {
+                            $('#enquiry_id').val("NA");
+                            $('#first_name').val("");
+                            $('#last_name').val("");
+                            $('#father_name').val("");
+                            $('#mother_name').val("");
+                            $('#dob').val("");
+                            //$('#standard').val("");
+                            $('#school_college_name').val("");
+                            //$('#percentage').val(enquiryData.percentage);
+                            $('#student_contact_no').val("");
+                            $('#alt_contact_no').val("");
+                        }
+                    }
+                });
             }
 
         }
-    }
+
+        /*****************Educational Details************/
+        $('#total_marks, #obtained_marks').on('input', function() {
+            var obtainedMarks = parseInt($('#obtained_marks').val());
+            var totalMarks = parseInt($('#total_marks').val());
+            if (!isNaN(obtainedMarks) && !isNaN(totalMarks) && (totalMarks > obtainedMarks)) {
+                var percent = (obtainedMarks / totalMarks) * 100;
+                $('#percentage').val(percent.toFixed(2));
+            }
+        });
+        $('#total_marks').change(function() {
+            var obtainedMarks = parseInt($('#obtained_marks').val());
+            var totalMarks = parseInt($('#total_marks').val());
+            if (!isNaN(obtainedMarks) && !isNaN(totalMarks) && (totalMarks > obtainedMarks)) {
+                var percent = (obtainedMarks / totalMarks) * 100;
+                $('#percentage').val(percent.toFixed(2));
+            } else {
+                alert("Enter Valid Marks.");
+            }
+        });
+
+        /*********PAyment Details **************/
+        $('#total_fees').on('input', function() {
+            var totalFees = numeral($('#total_fees').val()).format('0,0');
+            $('#total_fees').val(totalFees);
+        });
+
+        $('#noinstallation').change(function() {
+            createPayTable();
+        });
+
+        $('#paymentdetails').on('input', ".amount", function() {
+            var total = 0;
+            var $amount = $(".amount");
+            var amountLength = $amount.length;
+            $amount.each(function(index, element) {
+                var stringValue = numeral($(this).val());
+                $(this).val(stringValue.format('0,0'));
+                var value = stringValue.value();
+                if (value) {
+                    total = total + value;
+                }/*if(index == (amountLength-1)){
+                    var actualTotal = numeral($('#total_fees').val()).value();
+                    if(actualTotal < total){
+                        
+                    }else{
+                        
+                    }
+                }*/
+            });
+            $('#total').val(numeral(total).format('0,0'));
+        });
+
+        function createPayTable() {
+            var tableLength = ($('#paymentdetails tbody tr').length);
+            var noInstallation = $('#noinstallation').val();
+            var rowad = noInstallation - tableLength;
+            if (rowad < 0) {
+                $("#paymentdetails tbody tr").slice(rowad).remove();
+            } else if (rowad > 0) {
+                for (var i = 0; i < rowad; i++) {
+                    var addRow = '<tr>' +
+                        '<td >' +
+                        '<input type="date" name="date" class="date" value="' + moment().add(tableLength + i, 'months').format('YYYY-MM-DD') + '">' +
+                        '</td>' +
+                        '<td >' +
+                        '<input type="text" class="amount" >' +
+                        '</td>' +
+                        ' <td>' +
+                        ' <select>' +
+                        ' <option>pending</option>' +
+                        '<option>paid</option>' +
+                        ' </select>' +
+                        '</td>' +
+                        '</tr>';
+                    $("#paymentdetails tbody").append(addRow);
+                }
+
+            }
+        }
+    });
     </script>
 </body>
 

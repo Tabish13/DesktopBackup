@@ -21,7 +21,8 @@ exports.config = function() {
 
 /*Increment param
 increment if true will inc the the autoid 'i.e seq' by one and will return success msg
-increment if false just give the current autoid value 'i.e seq'*/
+increment if false just give the current autoid value 'i.e seq'
+Return the err and result of seq for increment false else return success on increment*/
 var autoId = exports.autoId = function(increment, db, cb) {
     //standard = standard ? standard : '';
     //var db = new Datastore({ filename: './data/' + academicYear + '/' + dbName + '/' + standard + '', autoload: true });
