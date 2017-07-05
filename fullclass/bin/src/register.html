@@ -14,45 +14,59 @@
     <link rel="stylesheet" type="text/css" href="./datatable/css/table.css"> -->
     <script src="./js/dynamicHTML.js"></script>
 </head>
+<style type="text/css">
+div img {
+    width: 100%;
+    min-height: 100%;
+}
+</style>
 
 <body>
-    <h3>STUDENT DETAILS</h3>
+    <div class="row">
+        <div class="col-md-10">
+            <h3>STUDENT DETAILS</h3>
+            <br>
+            <label>Reg No</label>
+            <input type="text" name="reg_no" id="reg_no">
+            <label>Reg Date</label>
+            <input type="text" name="reg_date" id="reg_date">
+            <label>Enquiry Id</label>
+            <input type="text" name="enquiry_id" id="enquiry_id">
+            <label>First Name</label>
+            <input type="text" name="first_name" id="first_name">
+            <label>Last Name</label>
+            <input type="text" name="last_name" id="last_name">
+            <label>Father Name</label>
+            <input type="text" name="father_name" id="father_name">
+            <label>Mother Name</label>
+            <input type="text" name="mother_name" id="mother_name">
+            <label>Student Contact No</label>
+            <input type="text" name="student_contact_no" id="student_contact_no">
+            <label>Guardian Contact No</label>
+            <input type="text" name="contact_no" id="contact_no">
+            <label>Alternate Contact No</label>
+            <input type="text" name="alt_contact_no" id="alt_contact_no">
+            <label>Address</label>
+            <input type="text" name="address" id="address">
+            <label>DOB</label>
+            <input type="text" name="dob" id="dob">
+            <label>Blood Group</label>
+            <input type="text" name="blood_group" id="blood_group">
+        </div>
+        <div class="col-md-2">
+            <div id="renderImage"></div>
+            <input type="file" name="photo" id="studentimage">
+        </div>
+    </div>
     <br>
-    <label>Reg No</label>
-    <input type="text" name="reg_no" id="reg_no">
-    <label>Reg Date</label>
-    <input type="text" name="reg_date" id="reg_date">
-    <label>Enquiry Id</label>
-    <input type="text" name="enquiry_id" id="enquiry_id">
+    <h3>EDUCATIONAL DETAILS </h3>
+    <br>
     <label>Academic Year</label>
     <select id="academic_year"></select>
     <label>Standard</label>
     <select id="standard"></select>
     <label>Batch</label>
     <input type="text" name="batch" id="batch">
-    <label>First Name</label>
-    <input type="text" name="first_name" id="first_name">
-    <label>Last Name</label>
-    <input type="text" name="last_name" id="last_name">
-    <label>Father Name</label>
-    <input type="text" name="father_name" id="father_name">
-    <label>Mother Name</label>
-    <input type="text" name="mother_name" id="mother_name">
-    <label>Student Contact No</label>
-    <input type="text" name="student_contact_no" id="student_contact_no">
-    <label>Guardian Contact No</label>
-    <input type="text" name="contact_no" id="contact_no">
-    <label>Alternate Contact No</label>
-    <input type="text" name="alt_contact_no" id="alt_contact_no">
-    <label>Address</label>
-    <input type="text" name="address" id="address">
-    <label>DOB</label>
-    <input type="text" name="dob" id="dob">
-    <label>Blood Group</label>
-    <input type="text" name="blood_group" id="blood_group">
-    <br>
-    <h3>EDUCATIONAL DETAILS </h3>
-    <br>
     <label>School College Name</label>
     <input type="text" name="school_college_name" id="school_college_name">
     <label>Obtained Marks</label>
@@ -101,8 +115,11 @@
             </tr>
         </tfoot>
     </table>
+    <input type="button" name="submit" id="submit" value="Submit">
+    <input type="button" name="cancel" id="cancel" value="Cancel">
     <script type="text/javascript">
     $(document).ready(function() {
+        var fs = require('fs');
         var numeral = require('numeral');
         var util = require('../db/util.js');
         //get the db.js function exports
@@ -131,6 +148,49 @@
             setAutoId(studentDB);
             //setEnquiryData();
         });
+
+        $('#studentimage').change(function(evt) {
+
+            var files = evt.target.files;
+            var reader = new FileReader();
+            reader.onload = function(frEvent) {
+                //document.getElementById("renderImage").innerHTML = '<img src="' + frEvent.target.result + '" />';
+                document.getElementById("renderImage").innerHTML = '<img src="' + frEvent.target.result + '"  id="studentImage" />';
+                //console.log($('#studentImage').attr('src'));
+            }
+            reader.readAsDataURL(files[0]);
+            //console.log(files);
+        });
+
+        function saveImage(academicYear, standard, imageName) {
+            //implement checks 
+            var imagesrc = $('#studentImage').attr('src');
+            if (imagesrc) {
+                var image64 = imagesrc.split(',');
+                if (image64.length == 2) {
+                    var imageType = image64[0];
+                    var fileExtension = 'png';
+
+                    var conv = image64[1];
+                    var imagePath = './data/' + academicYear + '/images';
+                    if (!fs.existsSync(imagePath)) {
+                        fs.mkdirSync(imagePath);
+                        console.log(",al");
+                    }
+
+                    fs.writeFile(imagePath + '/' + standard + '_' + imageName + '.' + fileExtension, conv, 'base64', (err) => {
+                        if (!err) {
+                            alert("done");
+                            console.log(image64);
+                            cb(true);
+                        } else {
+                            console.log(err);
+                            cb(false);
+                        }
+                    });
+                }
+            }
+        } //end of saveImage
 
         function defaultSetting() {
             var defaultValues = util.defaultSettings();
@@ -239,14 +299,15 @@
                 var value = stringValue.value();
                 if (value) {
                     total = total + value;
-                }/*if(index == (amountLength-1)){
-                    var actualTotal = numeral($('#total_fees').val()).value();
-                    if(actualTotal < total){
-                        
-                    }else{
-                        
-                    }
-                }*/
+                }
+                /*if(index == (amountLength-1)){
+                                    var actualTotal = numeral($('#total_fees').val()).value();
+                                    if(actualTotal < total){
+                                        
+                                    }else{
+                                        
+                                    }
+                                }*/
             });
             $('#total').val(numeral(total).format('0,0'));
         });
@@ -278,6 +339,97 @@
 
             }
         }
+
+
+        /*****************submit*************/
+        $('#submit').click(function() {
+            var studentData = getSudentData();
+            /*studenData.studentDetails;
+            studenData.educationalDetails;
+            studenData.paymentDetails;*/
+            console.log(studentData);
+            studentDB.insert(studentData, function(err, results) {
+                if (!err) {
+                    con.autoId(true, studentDB, function(err, result) {
+                        if (!err) {
+                            saveImage(studentData.academic_year, studentData.standard, studentData.reg_no, function(result) {
+                                if (result) {
+                                    // alert("done");
+                                    alert("SUCCESSFULLY CREATED ENQUIRY");
+                                    location.reload();
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        });
+
+        function getSudentData() {
+            var studentData = {};
+
+            studentData.reg_no = $('#reg_no').val();
+            studentData.enquiry_id = $('#enquiry_id').val();
+            studentData.academic_year = $('#academic_year').val();
+            studentData.standard = $('#standard').val();
+            studentData.batch = $('#batch').val();
+
+
+            var studentDetails = {};
+            studentDetails.first_name = $('#first_name').val();
+            studentDetails.last_name = $('#last_name').val();
+            studentDetails.father_name = $('#father_name').val();
+            studentDetails.mother_name = $('#mother_name').val();
+            studentDetails.student_contact_no = $('#student_contact_no').val();
+            studentDetails.contact_no = $('#contact_no').val();
+            studentDetails.alt_contact_no = $('#alt_contact_no').val();
+            studentDetails.address = $('#address').val();
+            studentDetails.dob = $('#dob').val();
+            studentDetails.blood_group = $('#blood_group').val();
+
+            studentData.studentDetails = studentDetails;
+
+            var educationalDetails = {};
+            educationalDetails.school_college_name = $('#school_college_name').val();
+            educationalDetails.obtained_marks = $('#obtained_marks').val();
+            educationalDetails.total_marks = $('#total_marks').val();
+            educationalDetails.percentage = $('#percentage').val();
+
+            studentData.educationalDetails = educationalDetails;
+
+            var paymentDetails = {};
+            paymentDetails.total_fees = $('#total_fees').val();
+            paymentDetails.no_installation = $('#no_installation').val();
+            paymentDetails.installments = getPaymentDetails(); //method which create array of the pay details
+
+            studentData.paymentDetails = paymentDetails;
+
+            return studentData;
+        } //end of getSudentData
+
+        function getPaymentDetails() {
+            var payDetails = [];
+            $("#paymentdetails tr").each(function() {
+
+                var currentRow = $(this);
+                var date = currentRow.find("td:eq(0)").find('input').val();
+                var amount = currentRow.find("td:eq(1)").find('input').val();
+                var testAmount = numeral(amount).value();
+                var status = currentRow.find("td:eq(2)").find('select').val();
+                if (date && status) {
+                    var rowData = {};
+                    rowData.date = moment(date, "YYYY-MM-DD").format("DD/MM/YYYY");
+                    rowData.amount = amount;
+                    rowData.status = status;
+                    payDetails.push(rowData);
+                    // console.log("date " + date + " amount" + amount + " status" + status);
+                } else if (status && !date) {
+                    //console.log("got the total amount " + amount);
+                    //last row of payment details total row.
+                }
+            });
+            return payDetails;
+        } //end of getPaymentDetails
     });
     </script>
 </body>
