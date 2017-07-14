@@ -11,7 +11,7 @@
     "batch": "",
     "image_url": "",
 
-    "student_details": {
+    "studentDetails": {
         "first_name": "tabish",
         "last_name": "khan",
         "father_name": "",
@@ -24,13 +24,13 @@
         "blood_group": ""
     },
 
-    "educational_details": {
+    "educationalDetails": {
         "school_college_name": "",
         "obtained_marks": "",
         "total_marks": "",
         "percentage": ""
     },
-    "payment_details": {
+    "paymentDetails": {
         "total_fees": "",
         "no_installation": "",
         "installments": [
@@ -38,16 +38,16 @@
         ]
     },
     "attendance_details": [{
-        "year": "2017",
-        "month": "jan",
-        "attendance": [{
+        //"year": "2017",
+        //"month": "jan",
+        //"attendance": [{
             "faculty": "T.A.KHAN",
             "date": "13/1/2017",
             "in_time": "3.00 AM",
             "out_time": "4.00 AM ",
             "topics": "linear algebra",
-            "status": "P/A/H"
-        }]
+            "note": "P/A/H"
+        //}]
     }],
 
     "exams_details": [{

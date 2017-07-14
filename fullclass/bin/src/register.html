@@ -81,7 +81,7 @@ div img {
     <label>Total Fees</label>
     <input type="text" name="total_fees" id="total_fees">
     <label>Number of Installment</label>
-    <select id="noinstallation">
+    <select id="no_installation">
         <option>1</option>
         <option>2</option>
         <option>3</option>
@@ -162,33 +162,38 @@ div img {
             //console.log(files);
         });
 
-        function saveImage(academicYear, standard, imageName) {
+        function saveImage(academicYear, standard, imageName, cb) {
             //implement checks 
             var imagesrc = $('#studentImage').attr('src');
             if (imagesrc) {
                 var image64 = imagesrc.split(',');
                 if (image64.length == 2) {
-                    var imageType = image64[0];
-                    var fileExtension = 'png';
+                    var imageType = image64[0]; //data:image/png;base64
+
+                    var fileExtension = imageType.split(";")[0].split("/")[1]; //logic to get the file extension
 
                     var conv = image64[1];
                     var imagePath = './data/' + academicYear + '/images';
                     if (!fs.existsSync(imagePath)) {
                         fs.mkdirSync(imagePath);
-                        console.log(",al");
+                        // console.log(",al");
                     }
 
                     fs.writeFile(imagePath + '/' + standard + '_' + imageName + '.' + fileExtension, conv, 'base64', (err) => {
                         if (!err) {
                             alert("done");
-                            console.log(image64);
-                            cb(true);
+                            //console.log(image64);
+                            cb(imagePath + '/' + standard + '_' + imageName + '.' + fileExtension);
                         } else {
-                            console.log(err);
+                            //console.log(err);
                             cb(false);
                         }
                     });
+                } else {
+                    cb(false);
                 }
+            } else {
+                cb(false);
             }
         } //end of saveImage
 
@@ -355,7 +360,23 @@ div img {
                             saveImage(studentData.academic_year, studentData.standard, studentData.reg_no, function(result) {
                                 if (result) {
                                     // alert("done");
-                                    alert("SUCCESSFULLY CREATED ENQUIRY");
+                                    studentDB.update({
+                                        reg_no: studentData.reg_no
+                                    }, {
+                                        $set: {
+                                            image_url: result
+                                        }
+                                    }, {}, function(err, numReplaced) {
+                                        if (!err) {
+                                            alert("SUCCESSFULLY CREATED ENQUIRY");
+                                            location.reload();
+                                        } else {
+                                            alert("SUCCESSFULLY CREATED BUT IMAGE NOT UPLOADED SET IMAGE IN EDIT");
+                                            location.reload();
+                                        }
+                                    });
+                                } else {
+                                    alert("SUCCESSFULLY CREATED IMAGE NOT UPLOADED");
                                     location.reload();
                                 }
                             });
@@ -369,10 +390,12 @@ div img {
             var studentData = {};
 
             studentData.reg_no = $('#reg_no').val();
+            studentData.reg_date = $('#reg_date').val();
             studentData.enquiry_id = $('#enquiry_id').val();
             studentData.academic_year = $('#academic_year').val();
             studentData.standard = $('#standard').val();
             studentData.batch = $('#batch').val();
+            //'./data/' +  studentData.academic_year + '/images'
 
 
             var studentDetails = {};

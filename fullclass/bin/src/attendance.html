@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title></title>
+    <script src="./js/jquery.min.js"></script>
+    <link rel="stylesheet" href="./bootstrap/css/bootstrap.min.css">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="./bootstrap/css/bootstrap-theme.min.css">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="./bootstrap/js/bootstrap.min.js"></script>
+    <!-- Data Tables -->
+    <script src="./datatable/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="./datatable/css/table.css">
+    <script src="./js/dynamicHTML.js"></script>
+    <script src="./js/attendanceDatatable.js"></script>
+</head>
+
+<body>
+    <label>Academic Year</label>
+    <select id="academicYear"></select>
+    <label>Standard</label>
+    <select id="standard"></select>
+    <label>Batch</label>
+    <input type="text" name="batch" id="batch">
+    <input type="button" name="OK" value="OK" id="oksubmit">
+    <script type="text/javascript">
+    $(document).ready(function() {
+
+        var table, thisInstance;
+        var noAbsent = 0;
+        var noAbsentUpdate = 0;
+        var lectureUpdated = false;
+        var fs = require('fs');
+        var numeral = require('numeral');
+        var util = require('../db/util.js');
+        //get the db.js function exports
+        var con = require('../db/db.js');
+        var moment = require('moment');
+
+        //include the script dhynamicHTML.js
+        createOptions('#academicYear', util.totalAcademicYears());
+        createOptions('#standard', util.standardsArrays());
+
+        var studentsDB = defaultSettings();
+        var attendanceDB = getAttendanceDB();
+
+        function defaultSettings() {
+            var defaultValues = util.defaultSettings();
+            var studentdb;
+            if (util.isAcademicYear(defaultValues.academicyear) && defaultValues.standard) {
+                studentdb = con.studentsDB(defaultValues.academicyear, defaultValues.standard);
+                $('#academicYear').val(defaultValues.academicyear);
+                $('#standard').val(defaultValues.standard);
+            } else {
+                studentdb = getDB();
+            }
+            return studentdb;
+        } //end of defaualt setting
+        function getDB() {
+            var academicyear = $('#academicYear').val();
+            var standard = $('#standard').val();
+            var studentdb = con.studentsDB(academicyear, standard);
+            return studentdb;
+        } //getDB
+        function getAttendanceDB() {
+            var academicyear = $('#academicYear').val();
+            var standard = $('#standard').val();
+            var batch = $('#batch').val();
+            if (batch == "") {
+                batch = "blank";
+            }
+            var attendancedb = con.attendanceDB(academicyear, standard, batch);
+            return attendancedb;
+        }
+
+        $('#oksubmit').click(function() {
+            var academicyear = $('#academicYear').val();
+            var standard = $('#standard').val();
+            var batch = $('#batch').val();
+            //update new db instancen on oksubmit 
+            studentsDB = getDB();
+            attendanceDB = getAttendanceDB();
+
+            $('#attendanceDate').val(moment().format('YYYY-MM-DD'));
+            //alert('clicked');
+            studentsDB.find({
+                reg_no: {
+                    $exists: true
+                },
+                academic_year: academicyear,
+                standard: standard,
+                batch: batch
+            }).exec(function(err, docs) {
+                if (!err) {
+                    //console.log(docs);
+                    table = attendanceDataTable(docs);
+                }
+            });
+        });
+
+        $('#attendanceSubmit').click(function() {
+            //absent details is the lecture details
+            var absentDetails = {
+                "faculty": $('#faculty').val(),
+                "date": $('#attendanceDate').val(),
+                "in_time": $('#inTime').val(),
+                "out_time": $('#outTime').val(),
+                "topics": $('#topics').val(),
+                "note": $('#note').val()
+            }
+            //Make validation's
+            attendanceDB.insert(absentDetails, function(err, results) {
+                if (!err) {
+                    console.log("Inserted lecture");
+                    lectureUpdated = true;
+                }
+            });
+            var isAbsentPresent = false;
+            $("#attendanceTable tr").each(function() {
+                var currentRow = $(this);
+                var checked = currentRow.find("td:eq(2)").find('input').is(':checked');
+                var data = table.row($(this)).data();
+                if (checked && data) {
+                    isAbsentPresent = true;
+                    //console.log(checked);
+                    noAbsent = noAbsent + 1;
+                    delete data._id;
+                    updateAttendanceDetails({
+                        reg_no: data.reg_no,
+                        academic_year: data.academic_year,
+                        batch: data.batch
+                    }, absentDetails);
+                    console.log(data);
+                }
+            });
+            if (!isAbsentPresent) {
+                alert("updated Succesfully")
+            }
+
+        });
+
+        function updateAttendanceDetails(query, updateData) {
+            // new Promise(function(resolve) {
+            studentsDB.update(query, {
+                $addToSet: {
+                    attendance_details: updateData
+                }
+            }, {}, function(err, numReplaced) {
+                if (!err) {
+                    //console.log("updated");
+                    noAbsentUpdate = noAbsentUpdate + 1;
+                    if (noAbsent == noAbsentUpdate && lectureUpdated) {
+                        alert("Updated No of absents" +noAbsentUpdate+ " of "+noAbsent );
+                        noAbsentUpdate = 0;
+                        noAbsent = 0;
+                        lectureUpdated = false;
+                    }
+                    //console.log(query);
+                    //resolve(true);
+                } else {
+                    console.log(err)
+                }
+                //reject(true);
+            });
+            //});
+        }
+    });
+    </script>
+    <div class="row">
+        <div class="col-sm-8">
+            <table id="attendanceTable"></table>
+        </div>
+        <div class="col-sm-4">
+            <label>Facukty</label>
+            <input type="text" name="faculty" id="faculty">
+            <br>
+            <label>Date</label>
+            <input type="date" name="attendanceDate" id="attendanceDate">
+            <br>
+            <label>In Time</label>
+            <input type="text" name="inTime" id="inTime">
+            <br>
+            <label>Out Time</label>
+            <input type="text" name="outTime" id="outTime">
+            <br>
+            <label>Topics</label>
+            <input type="text" name="topics" id="topics">
+            <br>
+            <label>Note</label>
+            <input type="text" name="note" id="note">
+            <br>
+        </div>
+    </div>
+    <input type="button" name="attendanceSubmit" id="attendanceSubmit" value="Submit">
+</body>
+
+</html>

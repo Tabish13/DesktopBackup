@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title></title>
+    <script src="./js/jquery.min.js"></script>
+    <link rel="stylesheet" href="./bootstrap/css/bootstrap.min.css">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="./bootstrap/css/bootstrap-theme.min.css">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="./bootstrap/js/bootstrap.min.js"></script>
+    <!-- Data Tables -->
+    <!-- <script src="./datatable/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="./datatable/css/table.css"> -->
+    <script src="./js/dynamicHTML.js"></script>
+</head>
+
+<body>
+    <div>
+        <label>Academic year</label>
+        <select id="facademicYear"></select>
+        <label>Standard</label>
+        <select id="fstandard"></select>
+        <label>Batch</label>
+        <input type="text" name="fbatch" id="fbatch">
+        <label>Reg No</label>
+        <input type="text" name="freg_no" id="freg_no">
+        <input type="button" name="fetchsubmit" id="fetchsubmit" value="Submit">
+        <div><img src="" id="userPhoto"></div>
+    </div>
+    <div>
+        <h3>User Details</h3>
+        <label>Reg No</label>
+        <input type="text" name="reg_no" id="reg_no">
+        <label>Reg Date</label>
+        <input type="text" name="date" id="reg_date">
+        <label>Update Date</label>
+        <input type="text" name="last_update_date" id="last_update_date">
+        <label>Enquiry No</label>
+        <input type="text" name="enquiry_id" id="enquiry_id">
+        <label>Batch</label>
+        <input type="text" name="batch" id="batch">
+        <label>First Name</label>
+        <input type="text" name="first_name" id="first_name">
+        <label>Last Name</label>
+        <input type="text" name="last_name" id="last_name">
+        <label>Father Name</label>
+        <input type="text" name="father_name" id="father_name">
+        <label>Mother Name</label>
+        <input type="text" name="mother_name" id="mother_name">
+        <label>Student Contact No</label>
+        <input type="text" name="student_contact_no" id="student_contact_no">
+        <label>Contact No</label>
+        <input type="text" name="contact_no" id="contact_no">
+        <label>Alternate Contact No</label>
+        <input type="text" name="alt_contact_no" id="alt_contact_no">
+        <label>Address</label>
+        <input type="text" name="address" id="address">
+        <label>DOB</label>
+        <input type="text" name="dob" id="dob">
+        <label>Blood Group</label>
+        <input type="text" name="blood_group" id="blood_group">
+        <input type="button" name="updateStudenDetails" id="updateStudenDetails" value="Update User Info">
+    </div>
+    <div>
+        <h3>Payment</h3>
+        <div>
+            <label>Total Fees</label>
+            <span id="total_fees"></span>
+            <label>No installment</label>
+            <span id="no_installation"></span>
+        </div>
+        <div id="paymentDetails">
+        </div>
+        <input type="button" name="updatePayment" value="Update Payment" id="updatePayment">
+    </div>
+    <div>
+        <h3>Attendance</h3>
+    </div>
+    <div>
+        <h3>Performance</h3>
+    </div>
+    <script type="text/javascript">
+    $(document).ready(function() {
+        var fs = require('fs');
+        var numeral = require('numeral');
+        var util = require('../db/util.js');
+        //get the db.js function exports
+        var con = require('../db/db.js');
+        var moment = require('moment');
+
+        createOptions('#facademicYear', util.totalAcademicYears());
+        createOptions('#fstandard', util.standardsArrays());
+
+        var studentsDB = defaultSettings();
+        var attendanceDB = getAttendanceDB();
+
+        function defaultSettings() {
+            var defaultValues = util.defaultSettings();
+            var studentdb;
+            if (util.isAcademicYear(defaultValues.academicyear) && defaultValues.standard) {
+                studentdb = con.studentsDB(defaultValues.academicyear, defaultValues.standard);
+                $('#facademicYear').val(defaultValues.academicyear);
+                $('#fstandard').val(defaultValues.standard);
+            } else {
+                studentdb = getDB();
+            }
+            return studentdb;
+        } //end of defaualt setting
+        function getDB() {
+            var academicyear = $('#facademicYear').val();
+            var standard = $('#facademicYear').val();
+            var studentdb = con.studentsDB(academicyear, standard);
+            return studentdb;
+        } //getDB
+        function getAttendanceDB() {
+            var academicyear = $('#facademicYear').val();
+            var standard = $('#facademicYear').val();
+            var batch = $('#fbatch').val();
+            if (batch == "") {
+                batch = "blank";
+            }
+            var attendancedb = con.attendanceDB(academicyear, standard, batch);
+            return attendancedb;
+        }
+
+        $('#fetchsubmit').click(function() {
+            var searchQuery = getSearchData();
+            //console.log(searchQuery);
+            studentsDB.find(searchQuery, function(err, results) {
+                if (!err) {
+                    console.log(results);
+                    if (results.length > 0) {
+                        var result = results[0];
+                        //console.log(result);
+                        setUserDetails(result);
+                        setPaymentDetails(result);
+                    }
+                } else {
+                    console.log(err);
+                }
+            });
+        });
+        //**********Set User Details****************
+        function setUserDetails(studentData) {
+            $('#reg_no').val(studentData.reg_no);
+            $('#reg_date').val(studentData.reg_date);
+            $('#last_update_date').val(studentData.last_update_date);
+            $('#enquiry_id').val(studentData.enquiry_id);
+            $('#batch').val(studentData.batch)
+            $('#first_name').val(studentData.studentDetails.first_name);
+            $('#last_name').val(studentData.studentDetails.last_name);
+            $('#father_name').val(studentData.studentDetails.father_name);
+            $('#mother_name').val(studentData.studentDetails.mother_name);
+            $('#student_contact_no').val(studentData.studentDetails.student_contact_no);
+            $('#contact_no').val(studentData.studentDetails.contact_no);
+            $('#alt_contact_no').val(studentData.studentDetails.alt_contact_no);
+            $('#address').val(studentData.studentDetails.address);
+            $('#dob').val(studentData.studentDetails.dob);
+            $('#blood_group').val(studentData.studentDetails.blood_group);
+        }
+        //Update user info on click of user
+        $('#updateStudenDetails').click(function() {
+            studentsDB.update(getSearchData(), {
+                $set: getUserData()
+            }, {}, function(err, numReplaced) {
+                if (!err) {
+                    alert("updated User Info.");
+                }
+            });
+        });
+
+        function getUserData() {
+            var studentData = {};
+            studentData.reg_no = $('#reg_no').val();
+            studentData.reg_date = $('#reg_date').val();
+            studentData.last_update_date = moment().format("DD/MM/YYYY");
+            $('#last_update_date').val(moment().format("DD/MM/YYYY"));
+            studentData.enquiry_id = $('#enquiry_id').val();
+            studentData.batch = $('#batch').val()
+
+            studentData.studentDetails = {};
+            studentData.studentDetails.first_name = $('#first_name').val();
+            studentData.studentDetails.last_name = $('#last_name').val();
+            studentData.studentDetails.father_name = $('#father_name').val();
+            studentData.studentDetails.mother_name = $('#mother_name').val();
+            studentData.studentDetails.student_contact_no = $('#student_contact_no').val();
+            studentData.studentDetails.contact_no = $('#contact_no').val();
+            studentData.studentDetails.alt_contact_no = $('#alt_contact_no').val();
+            studentData.studentDetails.address = $('#address').val();
+            studentData.studentDetails.dob = $('#dob').val();
+            studentData.studentDetails.blood_group = $('#blood_group').val();
+            return studentData;
+        } //end of getUserData
+        function getSearchData() {
+            var fAcademicYear = $('#facademicYear').val();
+            var fStandard = $('#fstandard').val();
+            var fBatch = $('#fbatch').val();
+            var fRegNo = $('#freg_no').val();
+            var searchQuery = {};
+            //searchQuery.student_details = {};
+            if (fAcademicYear) {
+                searchQuery.academic_year = fAcademicYear;
+            }
+            if (fStandard) {
+                searchQuery.standard = fStandard;
+            }
+            if (!fBatch == "") {
+                searchQuery.batch = fBatch;
+            }
+            if (!fRegNo == "") {
+                searchQuery.reg_no = fRegNo;
+            }
+            return searchQuery;
+        } //end of getSearchData()
+
+        //**************************** Payment Details***********************//
+        function setPaymentDetails(studentData) {
+            var paymentDetails = studentData.paymentDetails;
+            var totalPayment = paymentDetails.total_fees;
+            $('#total_fees').html(totalPayment);
+            var noInstallment = paymentDetails.no_installation;
+            $('#no_installation').html(noInstallment);
+            noInstallment ? noInstallment : paymentDetails.installments.length;
+            for (var i = 0; i < noInstallment; i++) {
+                var payDetail = paymentDetails.installments[i];
+                var date = payDetail.date;
+                var amount = payDetail.amount;
+                var status = payDetail.status;
+                var paymentHtml = '<div class="payments"> <span class = "paymentDate" >' + date + ' </span> <br>Rs.<span class = "paymentAmount" >' + amount + '</span> <br>';
+                if (status == "pending") {
+                    paymentHtml += '<span class = "paymentStatus"><input type="checkbox" name="status" value="pending">pppppp</span></div>';
+                } else {
+                    paymentHtml += '<span class = "paymentStatus"><input type="checkbox" name="status" value="paid" checked>ddddd</span></div>';
+                }
+                $('#paymentDetails').append(paymentHtml);
+            }
+
+        } //end of setPaymentDetails
+
+        $('#updatePayment').click(function() {
+            var totalPayment = $('#total_fees').html();
+            var noInstallment = $('#no_installation').html();
+            var paymentDetails = {};
+            var noNewInstallment = 0;
+            var total_fees = 0;
+            var installments = [];
+            $('.payments').each(function(){
+                var installmentDetail = {};
+                noNewInstallment = noNewInstallment + 1;
+                var paymentDate = $(this).children('.paymentDate').html();
+                installmentDetail.date = paymentDate;
+                var paymentAmount = $(this).children('.paymentAmount').html();
+                installmentDetail.amount = paymentAmount;
+                var amount = numeral(paymentAmount).value();
+                //console.log($(this).children('.paymentAmount'));
+                total_fees = total_fees + amount;
+                var paymentStatus = $(this).children('.paymentStatus').html();
+                installmentDetail.status = $(paymentStatus).val();
+                installments.push(installmentDetail);
+                //console.log(paymentDate+" "+paymentAmount+" "+paymentStatus);
+            });
+            paymentDetails.total_fees = numeral(total_fees).format('0,0');;
+            paymentDetails.no_installation = noNewInstallment;
+            paymentDetails.installments = installments;
+            console.log(paymentDetails);
+        }); //end of click update payment
+
+        $('#paymentDetails').on('change','.paymentStatus', function(){
+            alert("Changed");
+            //console.log($(this))
+            var satusInstance = $(this).html();
+            //console.log($(satusInstance));
+            var status = $(satusInstance).val();
+            if(status == "pending"){
+                $(satusInstance).val("paid");
+                $(this).innerText("Paid");
+            }else if(status == "paid"){
+                 $(satusInstance).val("pending");
+                 $(this).innerText("Pending");
+            }
+            
+        });
+
+    });
+    </script>
+</body>
+
+</html>

@@ -14,7 +14,10 @@ exports.enquiryDB = function(academicYear) {
     var enquiry = new Datastore({ filename: './data/' + academicYear + '/enquiry', autoload: true });
     return enquiry;
 }
-
+exports.attendanceDB = function(academicYear, standard, batch){
+    var attendance = new Datastore({ filename: './data/' + academicYear + '/lectures/'+standard+"/"+batch, autoload: true });
+    return attendance;
+}
 exports.config = function() {
     var serialNo = new Datastore({ filename: './data/config', autoload: true });
 }
