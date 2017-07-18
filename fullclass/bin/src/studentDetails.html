@@ -229,9 +229,9 @@
                 var status = payDetail.status;
                 var paymentHtml = '<div class="payments"> <span class = "paymentDate" >' + date + ' </span> <br>Rs.<span class = "paymentAmount" >' + amount + '</span> <br>';
                 if (status == "pending") {
-                    paymentHtml += '<span class = "paymentStatus"><input type="checkbox" name="status" value="pending">pppppp</span></div>';
+                    paymentHtml += '<span class = "paymentStatus"><input type="checkbox" name="status" value="pending"></span><span class="statusMessage">pppppp</span></div>';
                 } else {
-                    paymentHtml += '<span class = "paymentStatus"><input type="checkbox" name="status" value="paid" checked>ddddd</span></div>';
+                    paymentHtml += '<span class = "paymentStatus"><input type="checkbox" name="status" value="paid" checked></span><span class="statusMessage">ddddd</span></div>';
                 }
                 $('#paymentDetails').append(paymentHtml);
             }
@@ -268,16 +268,21 @@
 
         $('#paymentDetails').on('change','.paymentStatus', function(){
             alert("Changed");
-            //console.log($(this))
-            var satusInstance = $(this).html();
+            console.log($(this))
+            var satusInstance = $(this).html(); 
             //console.log($(satusInstance));
             var status = $(satusInstance).val();
+            console.log(status);
             if(status == "pending"){
                 $(satusInstance).val("paid");
-                $(this).innerText("Paid");
+                alert($(satusInstance).val()+" jj");
+                //$(this).siblings(".paymentStatus").val("paid");
+                $(this).siblings( ".statusMessage" ).html("paid");
+                //$(this).append(satusInstance);
             }else if(status == "paid"){
-                 $(satusInstance).val("pending");
-                 $(this).innerText("Pending");
+                 $(this).siblings(".paymentStatus").val("pending");
+                 //$(this).innerText("Pending");
+                 $(this).siblings( ".statusMessage" ).html("pending");
             }
             
         });
