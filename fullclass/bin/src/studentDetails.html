@@ -229,9 +229,9 @@
                 var status = payDetail.status;
                 var paymentHtml = '<div class="payments"> <span class = "paymentDate" >' + date + ' </span> <br>Rs.<span class = "paymentAmount" >' + amount + '</span> <br>';
                 if (status == "pending") {
-                    paymentHtml += '<span class = "paymentStatus"><input type="checkbox" name="status" value="pending"></span><span class="statusMessage">pppppp</span></div>';
+                    paymentHtml += '<span class = "paymentStatus"><input type="checkbox" name="status" ></span><span class="statusMessage">pending</span></div>';
                 } else {
-                    paymentHtml += '<span class = "paymentStatus"><input type="checkbox" name="status" value="paid" checked></span><span class="statusMessage">ddddd</span></div>';
+                    paymentHtml += '<span class = "paymentStatus"><input type="checkbox" name="status"  checked></span><span class="statusMessage">paid</span></div>';
                 }
                 $('#paymentDetails').append(paymentHtml);
             }
@@ -255,36 +255,27 @@
                 var amount = numeral(paymentAmount).value();
                 //console.log($(this).children('.paymentAmount'));
                 total_fees = total_fees + amount;
-                var paymentStatus = $(this).children('.paymentStatus').html();
-                installmentDetail.status = $(paymentStatus).val();
+                installmentDetail.status = $(this).children('.statusMessage').html();
                 installments.push(installmentDetail);
                 //console.log(paymentDate+" "+paymentAmount+" "+paymentStatus);
             });
             paymentDetails.total_fees = numeral(total_fees).format('0,0');;
             paymentDetails.no_installation = noNewInstallment;
             paymentDetails.installments = installments;
-            console.log(paymentDetails);
+            console.log(JSON.stringify(paymentDetails));
         }); //end of click update payment
 
         $('#paymentDetails').on('change','.paymentStatus', function(){
-            alert("Changed");
-            console.log($(this))
-            var satusInstance = $(this).html(); 
-            //console.log($(satusInstance));
-            var status = $(satusInstance).val();
-            console.log(status);
-            if(status == "pending"){
-                $(satusInstance).val("paid");
-                alert($(satusInstance).val()+" jj");
-                //$(this).siblings(".paymentStatus").val("paid");
+            //alert("Changed");
+            //console.log($(this))
+            var satusInstance = $(this); 
+            var paid = satusInstance.children().is(':checked');
+            //console.log(satusInstance.children().is(':checked'));
+            if(paid){
                 $(this).siblings( ".statusMessage" ).html("paid");
-                //$(this).append(satusInstance);
-            }else if(status == "paid"){
-                 $(this).siblings(".paymentStatus").val("pending");
-                 //$(this).innerText("Pending");
+            }else if(!paid){
                  $(this).siblings( ".statusMessage" ).html("pending");
             }
-            
         });
 
     });
