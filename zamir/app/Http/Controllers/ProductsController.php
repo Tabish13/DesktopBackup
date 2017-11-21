@@ -15,7 +15,9 @@ class ProductsController extends Controller
     public function index()
     {
         //
-        return view('product');
+        $categories =  Category::pluck('category_name', 'id');
+        //dd($categories);
+        return view('product',compact(['categories']));
     }
 
     /**
@@ -40,16 +42,14 @@ class ProductsController extends Controller
       $formInput=$request->except('image');
        //validation
       $this->validate($request,[
-          'title'=>'required',
+          'title'=>'required|max:255',
+          'subtitle'=>'required',
+          'desp'=>'required',
+          'brand'=>'required',
           'price'=>'required'
       ]);
-  //     image upload
-      $image=$request->image;
-      if($image){
-          //$imageName = $image->getClientOriginalName();
-          $image->move('images');
-          $formInput['image']=$image->hashName();
-      }
+      //image upload
+      
       Product::create($formInput);
       return view('product');
 
